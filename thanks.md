@@ -2,12 +2,11 @@
 title: Acknowledgment
 permalink: /thanks/
 layout: page
-excerpt: Thanks to amazing people that i met, who help me out from follishness, connecting me with another good person, giving some advice when i'm at a bad things, pulling me from ordinary to be great.
+excerpt: Thanks to awesome people who has contributed to my web development learning. A special thanks to my colleague and friend Shubham Oli who always inspired me to explore the un-explored. Meet him <a href="https://www.linkedin.com/in/shubham-oli-44936287/" target="_blank" rel="noopener">@Shubham Oli</a>
 comments: false
 ---
 
-Thanks to amazing people that i met, who help me out from follishness, connecting me with another good person, giving some advice when i'm at a bad things, pulling me from ordinary to be great.
+Thanks to awesome people who has contributed to my web development learning. A special thanks to my colleague and friend Shubham Oli who always inspired me to explore the un-explored. Meet him <a href="https://www.linkedin.com/in/shubham-oli-44936287/" target="_blank" rel="noopener">@Shubham Oli</a>
 
 <hr>
 
-Hopefully the knowledge that I got from them can be useful, and become a charity for them, Aamiin.
