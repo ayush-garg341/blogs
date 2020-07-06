@@ -12,7 +12,7 @@ image6: /git-from-scratch/after-reset.png
 image7: /git-from-scratch/reset-affect.svg
 ---
 
-This post is for all those who wants to learn to use GIT in development. I am assuming you know what is git and why we use it. So without further ado, let's jump to setting up a repo and using git.
+This post is for all those who wants to learn to use GIT in development. I am assuming you know what is git and why we use it. If you want to learn and understand GIT, learn it by doing. At every step create a repo and run the commands and observe the output. So without further ado, let's jump to setting up a repo and using git.
 
 # 1. Setting up a repo
 ## a. git init
@@ -676,7 +676,7 @@ git log --oneline
 3602d88 text added
 299b15f initial commit
 ```
-**`Note'**: Git revert expects a commit ref was passed in and will not execute without one.
+**`Note`**: Git revert expects a commit ref was passed in and will not execute without one.
 ```
 git revert HEAD
 
