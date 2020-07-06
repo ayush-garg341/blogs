@@ -10,6 +10,8 @@ image4: /git-from-scratch/revert.svg
 image5: /git-from-scratch/before-reset.png
 image6: /git-from-scratch/after-reset.png
 image7: /git-from-scratch/reset-affect.svg
+image8: /git-from-scratch/rebase.svg
+twitter: https://twitter.com/ayush_garg341
 ---
 
 This post is for all those who wants to learn to use GIT in development. I am assuming you know what is git and why we use it. If you want to learn and understand GIT, learn it by doing. At every step create a repo and run the commands and observe the output. So without further ado, let's jump to setting up a repo and using git.
@@ -676,7 +678,7 @@ git log --oneline
 3602d88 text added
 299b15f initial commit
 ```
-**`Note`**: Git revert expects a commit ref was passed in and will not execute without one.
+**`Note`**: Git revert expects a commit ref was passed in and will not execute without one. Always remember HEAD points to the latest commit or to the tip of your branch.
 ```
 git revert HEAD
 
@@ -779,7 +781,7 @@ This is the default operating mode `git reset` or `git reset <commit>`. The ref 
 ##### 3. - - soft
 When the --soft argument is passed, the ref pointers are updated and the reset stops there. The Staging Index and the Working Directory are left untouched.
 
-**`Note`**:- `git reset` is designed to undo local changes to the Staging Index and Working Directorry. You should never use `git reset <commit>` when any snapshots after `<commit>` have been pushed to a public/shared repository.
+**`Note`**:- `git reset` is designed to undo local changes to the Staging Index and Working Directorry. You should never use `git reset <commit>` when any snapshots after `<commit>` have been pushed to a public/shared repository. For this purpose use `git revert` command when commit is pushed to public repo.
 
 ##### Unstaging a file
 The `git reset` command is frequently encountered while preparing the staged snapshot.
@@ -832,4 +834,76 @@ A reset will revert the current staging index and working directory back to the 
 **`Note`**:- `git rm` is equivalent to shell **rm** command and `git add`. A Git repository will recognize when a regular shell rm command has been executed on a file it is tracking. It will update the **working directory** to reflect the removal. It will **not** update the staging index with the removal. An additional `git add` command will have to be executed on the removed file paths to add the changes to the staging index.  
 
 
+# 5. Re-writing history
+Using re-writing history commands comes under the disclaimer that using them may result in lost content. Sometimes we need to merge several commits into one to make branch commit history look clean, merge one branch into another these are some use cases when we need to rewrite commit history. Below are the methods explained in detail:
 
+#### a. git commit - - amend
+**Use Case**:- Suppose you have edited some files and added them in staging index, now before committing these changes you realize that these changes should go with the last commit you made. Or there is another scenario, when you forgot to add a file in staging tree and later realize that code won't work without it, in this case instead of creating new commit, you can amend the file with the last commit you made.
+
+**`Note`**:- Amending does not just alter the most recent commit, it replaces it entirely, meaning the amended commit will be a new entity with its own ref.
+
+```
+git commit --amend
+git commit --amend -m "an updated commit message"
+```
+Let's say you just committed and you made a mistake in your commit log message. Running this command when there is nothing staged lets you edit the previous commit’s message without altering its snapshot.
+
+```
+#edit config.js and index.js
+git add config.js
+git commit
+
+#realize you forgot to add the changes from index.js
+git add index.js
+git commit --amend --no-edit
+```
+
+The **- - no-edit** flag will allow you to make the amendment to your commit without changing its commit message.
+
+**`Note`**:- Amended commits are actually entirely new commits and the previous commit will no longer be on your current branch. Avoid amending a commit that other developers have based their work on i.e **don't amend public commits**. Amending a commit that is shared with another user will potentially require confusing and lengthy merge conflict resolutions.
+
+#### b. git rebase
+Rebasing is the process of moving or combining a sequence of commits to a new base commit. Rebase is one of two Git utilities (another is `git merge`)  that specializes in integrating changes from one branch onto another.
+<figure>
+<img src="{{ page.image8 }}" alt="rebase">
+<figcaption>Fig 8. Visualize rebasing flow.</figcaption>
+</figure>
+
+From a content perspective, rebasing is **changing the base** of your branch from one commit to another making it appear as if you'd created your branch from a different commit.
+
+
+**`Note`**:- The primary reason for rebasing is to maintain a **linear project history** which is not possible via merge. Rebasing is a common way to integrate upstream changes into your local repository. You should never rebase commits once they've been pushed to a public repository.
+
+```
+In the above picture we have change the base of our feature branch from older master branch commit to the newer master commit.
+
+git branch
+git checkout <feature_branch>
+git rebase master
+```
+
+**`Caveats`**:- Merge conflicts may become more frequent during a rebase workflow. This occurs if you have a long-lived branch that has strayed from master. Eventually you will want to rebase against master and at that time it may contain many new commits that your branch changes may conflict with. The real danger cases arise when executing history rewriting interactive rebases and force pushing the results to a remote branch that's shared by other users.
+
+#### c. git reflog
+**Use Case**:- When you use `rebase -i` in interactive mode, you might lost some commits and later you realized that you need them. Or you have accidentally deleted a branch (`git branch -d <branch_name>` gives the SHA1), now you want to recover that. In such situations `reflog` is a saviour.
+
+The `reflog` command keeps a track of every single change made in the references (branches or tags) of a repository and keeps a log history of the branches and tags that were either created locally or checked out. The reflog command will give you a good history of what's been happening on the head of your branches. It might look like below
+```
+$git reflog
+
+930b2f3 HEAD@{9}: commit: another file added
+db9839d HEAD@{10}: checkout: moving from ayush_local to master
+db9839d HEAD@{11}: checkout: moving from master to ayush_local
+db9839d HEAD@{12}: pull origin ayush_local: Fast-forward
+d79a78c HEAD@{13}: checkout: moving from ayush_local to master
+db9839d HEAD@{14}: commit: commit from another branch
+d79a78c HEAD@{15}: checkout: moving from master to ayush_local
+d79a78c HEAD@{16}: commit (initial): first commit
+```
+
+**`Note`**:- This is useful when you have lost some commits and wondering what to do now. Use this command to see older commits and then checkout to correct branch and run `git reset <SHA1>` to recover lost commits.
+Executing `git reflog show` will display the log for the passed \<refid\>.
+
+For more in depth detail on <a href="https://git-scm.com/docs/git-reflog" target="_blank">reflog</a>
+
+*This is the end of this article on git basics. All these operations can be performed on your local system without interacting with remote repos. In the upcoming article we'll see how to collab with remote repos. Stay in touch. Please follow on <a href="{{page.twitter}}" target="_blank">Twitter</a>*
