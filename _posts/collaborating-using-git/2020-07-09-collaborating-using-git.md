@@ -6,6 +6,11 @@ description: The blog describes collaboration using git version control.
 image1: /collaborating-using-git/pull-origin1.svg
 image2: /collaborating-using-git/pull-origin2.svg
 image3: /collaborating-using-git/pull-origin3.svg
+image4: /collaborating-using-git/branching.svg
+image5: /collaborating-using-git/merging1.png
+image6: /collaborating-using-git/merging2.png
+image7: /collaborating-using-git/before-fast-forward.svg
+image8: /collaborating-using-git/3-way-merge.svg
 twitter: https://twitter.com/ayush_garg341
 ---
 
@@ -194,14 +199,14 @@ The `git pull` command is used to fetch and download content from a remote repos
 
 <figure>
 <img src="{{ page.image2 }}" alt="Merging remote commits">
-<figcaption>Fig 1. Merging commits from remote origin/master.</figcaption>
+<figcaption>Fig 2. Merging commits from remote origin/master.</figcaption>
 </figure>
 
 * In the above diagram, we can see the new commit H. This commit is a **new merge commit** that contains the contents of remote A-B-C commits and has a combined log message.
 
 <figure>
 <img src="{{ page.image3 }}" alt="Rebasing remote commits">
-<figcaption>Fig 1. Rebasing commits from remote origin/master.</figcaption>
+<figcaption>Fig 3. Rebasing commits from remote origin/master.</figcaption>
 </figure>
 
 **`Note`**:- Instead of merging when pulling, we can rebase also. The `--rebase` option can be used to ensure a linear history by preventing unnecessary merge commits.
@@ -237,3 +242,172 @@ Displays the content being downloaded and the merge details.
 
 
 # 2. Using branches
+
+### a. git branch
+It's importannt to understand that **branch** represents the tip of a series of commits ( effectively a **pointer** to a snapshot of your changes ), its not a container for commits. A branch represents an independent line of development as shown in below fig.
+<figure>
+<img src="{{ page.image4 }}" alt="Branching">
+<figcaption>Fig 4. Branching.</figcaption>
+</figure>
+
+By developing them ( little feature and big feature ) in branches, it’s not only possible to work on both of them in parallel, but it also keeps the main master branch free from questionable code. Branches serve as an abstraction for the **edit/stage/commit** process. Think of them as a way to *request a brand new working directory, staging area, and project history*.
+
+**Options**
+```
+git branch/git branch --list
+List all of the branches in your repository.
+
+git branch <branch>
+Create a new branch called <branch>.
+
+git branch -d <branch>
+Delete the specified branch ( prevents you from deleting the branch if it has unmerged changes )
+
+git branch -D <branch>
+Force delete the specified branch, even if it has unmerged changes.
+
+git branch -m <branch>
+Rename the current branch to <branch>.
+
+git branch -a
+List all remote branches. 
+```
+
+**Creating remote branches**
+
+The git branch command also works on remote branches. When we push a local branch to remote repo, it automatically creates that local branch at remote.
+```
+$ git remote add new-remote https://bitbucket.com/user/repo.git
+# Add remote repo to local repo config
+$ git push <new-remote> some_local_branch
+# pushes the some_local_branch branch to new-remote
+```
+
+**Deleting branches**
+
+Once you’ve finished working on a branch and have merged it into the main code base, you’re free to delete the branch without losing any history:
+
+```
+git branch -d some_local_branch
+```
+
+However, if the branch hasn’t been merged, the above command will output an error message:
+```
+error: The branch 'some_local_branch' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D some_local_branch'.
+```
+
+This protects you from losing access to that entire line of development. These commands will delete a **local copy** of a branch. The branch may still exist in remote repos. To delete a **remote branch** execute the following.
+```
+git push origin --delete some_local_branch
+or
+git push origin :some_local_branch
+```
+
+### b. git checkout
+Checkout is the act of switching between different versions of a target entity. The `git checkout` command operates upon three distinct entities: **files**, **commits**, and **branches**.
+
+By default `git checkout -b` will base the new-branch off the current HEAD.
+
+```
+$> git branch
+master
+new_feature_branch
+another_branch
+
+$> git checkout new_feature_branch
+Switch to the existing branch new_feature_branch
+
+$> git checkout -b <new-branch>
+The above example simultaneously creates and checks out <new-branch>. The -b option is a convenience flag that tells Git to run git branch <new-branch> before running git checkout <new-branch>.
+
+$> git checkout -b <new-branch> <existing-branch>
+<existing-branch> is passed which then bases new-branch off of existing-branch instead of the current HEAD.
+```
+
+**`Note`**:- Git tracks a history of checkout operations in the reflog. You can execute `git reflog` to view the history.
+
+**Checkout a remote branch**
+
+In order to checkout a remote branch you have to first fetch the contents of the branch.
+```
+git fetch --all
+git checkout <remotebranch>
+
+git checkout -b <branchname>
+git reset --hard origin/<branchname>
+Checkout a new local branch and reset it to the remote branches last commit.
+```
+
+**`Note`**:- When checkout a commit you are in **DETACHED HEAD** state. Your development should always take place on a branch, never on a detached HEAD. This makes sure you always have a reference to your new commits.
+
+### c. git merge
+This is one of the important git commands. **Merging** is Git's way of putting a forked history back together again. The git merge command lets you take the independent lines of development created by git branch and integrate them into a single branch.
+
+**How it works**
+
+Git merge will combine multiple sequences of commits into one unified history. `git merge` is used to combine two branches. Generally `git merge` is used to combine two branches explained in the following steps:
+
+* `git merge` takes two commit pointers, usually the branch tips, and will find a common base commit between them. Git has several different methods to find a base commit, these methods are called **"merge strategies"**
+
+<figure>
+<img src="{{ page.image5 }}" alt="Merging branches">
+<figcaption>Fig 5. Common base b/w two branches.</figcaption>
+</figure>
+
+* Once Git finds a common base commit it will create a new "merge commit" that combines the changes of each queued merge commit sequence.
+<figure>
+<img src="{{ page.image6 }}" alt="Merging branches">
+<figcaption>Fig 6. Merging feature branch into master.</figcaption>
+</figure>
+
+* Invoking this (`git merge feature_branch`)  command will merge the specified feature_branch into the current branch, we'll assume master.
+
+* Merge commits are unique against other commits in the fact that they have **two parent commits**.
+
+* When creating a merge commit Git will attempt to auto matically merge the separate histories for you. If Git encounters a piece of data that is changed in both histories it will be unable to automatically combine them.
+
+**Steps to take before merge**
+* Confirm the receiving branch. If needed, execute `git checkout <receiving>` to switch to the receiving branch. 
+
+* Fetch latest remote commits. Make sure the receiving branch and the merging branch are up-to-date with the latest remote changes.
+
+**Types of merge**
+* Fast forward merge
+
+A fast-forward merge can occur when there is a linear path from the current branch tip to the target branch.
+<figure>
+<img src="{{ page.image7 }}" alt="Before and after fast forward">
+<figcaption>Fig 7. Before and after fast forward merge.</figcaption>
+</figure>
+
+* 3-way merge
+
+However, a fast-forward merge is not possible if the branches have diverged. When there is **not a linear path** to the target branch, Git has no choice but to combine them via a 3-way merge. The nomenclature comes from the fact that Git uses three commits to generate the merge commit: **the two branch tips and their common ancestor**.
+<figure>
+<img src="{{ page.image8 }}" alt="3 way merge">
+<figcaption>Fig 8. 3 way merge.</figcaption>
+</figure>
+
+**`Note`**:- After merging you can delete that branch safely using `git branch -d <branch_name>`.
+
+**Merge conflicts**
+
+If the two branches you're trying to merge, both changed the same part of the same file, Git won't be able to figure out which version to use. In that case you need to intervene manually, and select the changes that you want to keep.
+
+**`Note`**:- Merge conflicts will only occur in the event of a 3-way merge. It’s not possible to have conflicting changes in a fast-forward merge.
+
+
+Sample merge conflict look like below.
+```
+$ cat merge.txt
+<<<<<<< HEAD
+this is some content to mess with
+content to append
+=======
+totally different content to merge later
+>>>>>>> new_branch_to_merge_later
+```
+
+Think of these new lines as **"conflict dividers"**. The ======= line is the "center" of the conflict. All the content between the center and the <<<<<<< HEAD line is content that exists in the current branch master which the HEAD ref is pointing to. Alternatively all content between the center and >>>>>>> new_branch_to_merge_later is content that is present in  merging branch. You can resolve these merge conflicts in your favorite text editor.
+
